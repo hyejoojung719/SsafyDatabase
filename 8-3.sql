@@ -13,12 +13,12 @@ select ct.name, l.language, n.name from country n join city ct
 on n.code = ct.CountryCode join countrylanguage l on n.code = l.CountryCode
 where ct.name='amsterdam' and l.isOfficial='T';
 #4
-select n.name, n.capital, ct.name 수도, ct.population 수도인구, n.code2 
+select n.name, n.capital, ct.name 수도, ct.population 수도인구
 from country n join city ct on n.code = ct.CountryCode
-where n.name like 'United%';
+where n.name like 'United%' and ct.id = n.capital;
 #5
-select n.name, n.capital, ct.name 수도, ct.population 수도인구, n.code2 
-from country n left join city ct on n.code = ct.CountryCode
+select n.name, n.capital, ifnull(ct.name , "수도없음") 수도, ifnull(ct.population, "수도없음") 수도인구
+from country n  left join city ct on n.code = ct.CountryCode and ct.id = n.capital
 where n.name like 'United%';
 #6
 select count(*) 국가수 from countrylanguage
@@ -45,8 +45,16 @@ where isofficial='T' and name='san miguel';
 #14
 select countrycode, max(population) max_pop from city group by(countrycode) order by 1;
 #15
--- select countrycode, name, population from city 
--- group by  order by 1;
+select countrycode, name, population from city group by countrycode having max(population) order by 1;
 #16
+-- 국가 정보는 존재하지만 도시가 존재하지 않는 정보도 출력
+select ct.countrycode, cn.name, ct.name, ct.population from city ct right join country cn on ct.countrycode = cn.code 
+group by ct.countrycode ;
+select ct.countrycode, cn.name, ct.name, ct.population from city ct right join country cn on ct.countrycode = cn.code 
+group by ct.countrycode having max(ct.population) order by 1;
 #17
+create view summary as (
+select ct.countrycode, cn.name as 'co_name', ct.name as 'ci_name', ct.population from city ct join country cn on ct.countrycode = cn.code 
+group by ct.countrycode having max(ct.population) order by 1);
 #18
+select * from summary where countrycode='KOR';
